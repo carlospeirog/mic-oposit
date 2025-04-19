@@ -1,0 +1,19 @@
+[package]
+name = "mic-oposit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.4"
+serde = { version = "1.0", features = ["derive"] }
+env_logger = "0.10"
+log = "0.4"
+derive_more = "0.99"
+mongodb = "3.2"
+serde_json = "1.0"
+serde_derive = "1.0"
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+async-trait = "0.1"
+thiserror = "1.0"
+dotenv = "0.15"
