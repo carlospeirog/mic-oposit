@@ -1,35 +1,35 @@
 use crate::error::AppError;
-use crate::models::User;
+use crate::models::Teacher;
 use actix_web::{get, web, HttpResponse, Responder};
 use futures::TryStreamExt;
 use mongodb::{bson::doc, bson::oid::ObjectId, Collection};
 use serde::Deserialize;
 use std::error::Error;
 
-/// Trait defining the interface for user data access
+/// Trait defining the interface for teacher data access
 #[async_trait::async_trait]
 pub trait UserRepository: Send + Sync {
     type Error: Error + Send + Sync + 'static;
 
-    /// Find users matching the given criteria
-    async fn find_users(
+    /// Find teachers matching the given criteria
+    async fn find_teachers(
         &self,
         name: Option<&str>,
         surname: Option<&str>,
         specialty: Option<&str>,
-    ) -> Result<Vec<User>, Self::Error>;
+    ) -> Result<Vec<Teacher>, Self::Error>;
 
-    /// Find a user by their ID
-    async fn find_user_by_id(&self, id: &str) -> Result<Option<User>, Self::Error>;
+    /// Find a teacher by their ID
+    async fn find_teacher_by_id(&self, id: &str) -> Result<Option<Teacher>, Self::Error>;
 }
 
 /// MongoDB implementation of UserRepository
 pub struct MongoUserRepository {
-    collection: Collection<User>,
+    collection: Collection<Teacher>,
 }
 
 impl MongoUserRepository {
-    pub fn new(collection: Collection<User>) -> Self {
+    pub fn new(collection: Collection<Teacher>) -> Self {
         Self { collection }
     }
 }
@@ -38,15 +38,21 @@ impl MongoUserRepository {
 impl UserRepository for MongoUserRepository {
     type Error = mongodb::error::Error;
 
-    async fn find_users(
+    async fn find_teachers(
         &self,
         name: Option<&str>,
         surname: Option<&str>,
         specialty: Option<&str>,
-    ) -> Result<Vec<User>, Self::Error> {
+    ) -> Result<Vec<Teacher>, Self::Error> {
         let mut filter = doc! {};
         if let Some(name) = name {
-            filter.insert("name", name.to_uppercase());
+            filter.insert(
+                "name",
+                doc! {
+                    "$regex": name.to_uppercase(),
+                    "$options": ""
+                },
+            );
         }
         if let Some(surname) = surname {
             filter.insert(
@@ -65,7 +71,7 @@ impl UserRepository for MongoUserRepository {
         cursor.try_collect().await
     }
 
-    async fn find_user_by_id(&self, id: &str) -> Result<Option<User>, Self::Error> {
+    async fn find_teacher_by_id(&self, id: &str) -> Result<Option<Teacher>, Self::Error> {
         let object_id = match ObjectId::parse_str(id) {
             Ok(id) => id,
             Err(_) => return Ok(None),
@@ -76,9 +82,9 @@ impl UserRepository for MongoUserRepository {
     }
 }
 
-/// Query parameters for filtering users
+/// Query parameters for filtering teachers
 #[derive(Debug, Deserialize)]
-pub struct UserQuery {
+pub struct TeacherQuery {
     /// Filter by first name (case-insensitive)
     name: Option<String>,
     /// Filter by last name (case-insensitive, partial match)
@@ -87,7 +93,7 @@ pub struct UserQuery {
     specialty: Option<String>,
 }
 
-/// Get a list of users with optional filtering
+/// Get a list of teachers with optional filtering
 ///
 /// # Query Parameters
 /// - `name`: Filter by first name (case-insensitive)
@@ -95,15 +101,15 @@ pub struct UserQuery {
 /// - `specialty`: Filter by specialty name
 ///
 /// # Returns
-/// - 200 OK with array of users
+/// - 200 OK with array of teachers
 /// - 500 Internal Server Error if database operation fails
-#[get("/users")]
-async fn get_users(
+#[get("/teachers")]
+async fn get_teachers(
     repo: web::Data<MongoUserRepository>,
-    query: web::Query<UserQuery>,
+    query: web::Query<TeacherQuery>,
 ) -> Result<impl Responder, AppError> {
-    let users = repo
-        .find_users(
+    let teachers = repo
+        .find_teachers(
             query.name.as_deref(),
             query.surname.as_deref(),
             query.specialty.as_deref(),
@@ -111,38 +117,38 @@ async fn get_users(
         .await
         .map_err(|_| AppError::InternalError)?;
 
-    if users.is_empty() {
+    if teachers.is_empty() {
         Err(AppError::NotFound)
     } else {
-        Ok(HttpResponse::Ok().json(users))
+        Ok(HttpResponse::Ok().json(teachers))
     }
 }
 
-/// Get a single user by their ID
+/// Get a single teacher by their ID
 ///
 /// # Path Parameters
-/// - `id`: MongoDB ObjectId of the user
+/// - `id`: MongoDB ObjectId of the teacher
 ///
 /// # Returns
-/// - 200 OK with user data
-/// - 404 Not Found if user doesn't exist
+/// - 200 OK with teacher data
+/// - 404 Not Found if teacher doesn't exist
 /// - 500 Internal Server Error if database operation fails
-#[get("/users/{id}")]
-async fn get_user_by_id(
+#[get("/teachers/{id}")]
+async fn get_teacher_by_id(
     repo: web::Data<MongoUserRepository>,
     id: web::Path<String>,
 ) -> Result<impl Responder, AppError> {
     match repo
-        .find_user_by_id(&id)
+        .find_teacher_by_id(&id)
         .await
         .map_err(|_| AppError::InternalError)?
     {
-        Some(user) => Ok(HttpResponse::Ok().json(user)),
+        Some(teacher) => Ok(HttpResponse::Ok().json(teacher)),
         None => Err(AppError::NotFound),
     }
 }
 
-/// Configure the users API routes
+/// Configure the teachers API routes
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_users).service(get_user_by_id);
+    cfg.service(get_teachers).service(get_teacher_by_id);
 }

@@ -1,9 +1,9 @@
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
-/// Represents a user in the system with their personal information and specialties.
+/// Represents a teacher in the system with their personal information and specialties.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct User {
+pub struct Teacher {
     /// MongoDB document ID
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
@@ -13,14 +13,14 @@ pub struct User {
     pub name: String,
     /// User's last name
     pub surname: String,
-    /// Whether the user has services assigned
+    /// Whether the teacher has services assigned
     pub has_services: bool,
     /// User's specialties and their status
     pub specialties: Specialties,
 }
 
-/// Represents the specialties a user can have.
-/// Each field indicates whether the user has that specialty (true) or not (false).
+/// Represents the specialties a teacher can have.
+/// Each field indicates whether the teacher has that specialty (true) or not (false).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Specialties {
     /// Informatics specialty
