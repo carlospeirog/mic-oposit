@@ -1,4 +1,4 @@
-pub mod primary_teachers;
+pub mod primary;
 
 use actix_web::web;
 
@@ -7,7 +7,7 @@ mod health;
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1")
-            .configure(primary_teachers::config)
+            .configure(primary::config)
             .configure(health::config),
     );
 }

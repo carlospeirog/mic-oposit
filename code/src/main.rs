@@ -7,7 +7,7 @@ mod config;
 mod db;
 mod error;
 mod models;
-use api::primary_teachers::MongoUserRepository;
+use api::primary::MongoUserRepository;
 use db::mongodb::MongoConnection;
 
 /// Main entry point for the mic-oposit application

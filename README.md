@@ -41,7 +41,7 @@ The system supports the following specialties:
    ```
    DATABASE_URL=mongodb://localhost:27017
    DATABASE_NAME=primary
-   COLLECTION_NAME=persons
+   COLLECTION_NAME=teachers
    HOST=127.0.0.1
    PORT=8080
    LOG_LEVEL=info

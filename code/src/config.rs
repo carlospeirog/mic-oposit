@@ -24,7 +24,7 @@ impl Config {
     /// # Environment Variables
     /// - `DATABASE_URL`: MongoDB connection URL (required)
     /// - `DATABASE_NAME`: MongoDB database name (default: "primary")
-    /// - `COLLECTION_NAME`: MongoDB collection name (default: "persons")
+    /// - `COLLECTION_NAME`: MongoDB collection name (default: "teachers")
     /// - `HOST`: Server host address (default: "127.0.0.1")
     /// - `PORT`: Server port number (default: 8080)
     /// - `LOG_LEVEL`: Logging level (default: "info")
@@ -36,7 +36,7 @@ impl Config {
         Ok(Config {
             database_url: env::var("DATABASE_URL")?,
             database_name: env::var("DATABASE_NAME").unwrap_or_else(|_| "primary".to_string()),
-            collection_name: env::var("COLLECTION_NAME").unwrap_or_else(|_| "persons".to_string()),
+            collection_name: env::var("COLLECTION_NAME").unwrap_or_else(|_| "teachers".to_string()),
             host: env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
             port: env::var("PORT")
                 .unwrap_or_else(|_| "8080".to_string())
